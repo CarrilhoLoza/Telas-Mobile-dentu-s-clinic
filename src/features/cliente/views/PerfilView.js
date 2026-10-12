@@ -14,7 +14,15 @@ import { CommonActions } from '@react-navigation/native';
 import { usePerfilViewModel } from '../viewmodels/PerfilViewModel';
 import { colors } from '../../../theme/colors';
 
-function EditableField({ label, value, editing, onToggle, onChangeText, keyboardType }) {
+function EditableField({
+  label,
+  value,
+  editing,
+  loading,
+  onToggle,
+  onChangeText,
+  keyboardType,
+}) {
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -23,13 +31,21 @@ function EditableField({ label, value, editing, onToggle, onChangeText, keyboard
         <TextInput
           style={[styles.input, !editing && styles.inputDisabled]}
           value={value}
-          editable={editing}
+          editable={editing && !loading}
           onChangeText={onChangeText}
           keyboardType={keyboardType}
           autoCapitalize="none"
+          autoCorrect={false}
         />
 
-        <Pressable style={styles.addon} onPress={onToggle} hitSlop={6}>
+        <Pressable
+          style={[styles.addon, loading && styles.addonDisabled]}
+          onPress={onToggle}
+          disabled={loading}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel={editing ? `Salvar ${label}` : `Editar ${label}`}
+        >
           <Feather
             name={editing ? 'check' : 'edit-2'}
             size={20}
@@ -45,8 +61,17 @@ export default function PerfilView({ navigation }) {
   const { width } = useWindowDimensions();
   const avatar = Math.min(234, width * 0.58);
 
-  const { perfil, error, sucesso, setCampo, carregarPerfil, salvarPerfil, sair } =
-    usePerfilViewModel();
+  const {
+    perfil,
+    loading,
+    error,
+    sucesso,
+    setCampo,
+    setError,
+    carregarPerfil,
+    salvarPerfil,
+    sair,
+  } = usePerfilViewModel();
 
   const [editEmail, setEditEmail] = useState(false);
   const [editTelefone, setEditTelefone] = useState(false);
@@ -56,13 +81,49 @@ export default function PerfilView({ navigation }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const nome = perfil.nome || global.paciente?.nome || '';
-  const email = perfil.email || global.paciente?.email || '';
-  const telefone = perfil.telefone || global.paciente?.telefone || '';
+  const nome = perfil.nome ?? global.paciente?.nome ?? '';
+  const email = perfil.email ?? global.paciente?.email ?? '';
+  const telefone = perfil.telefone ?? global.paciente?.telefone ?? '';
 
-  const alternar = async (editando, setEditando) => {
-    if (editando) await salvarPerfil();
-    setEditando(!editando);
+  const validarCampo = (campo, valor) => {
+    const valorLimpo = valor.trim();
+
+    if (!valorLimpo) {
+      return `${campo === 'email' ? 'O e-mail' : 'O telefone'} é obrigatório.`;
+    }
+
+    if (campo === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valorLimpo)) {
+      return 'Informe um e-mail válido.';
+    }
+
+    if (campo === 'telefone' && valorLimpo.replace(/\D/g, '').length < 10) {
+      return 'Informe um telefone válido.';
+    }
+
+    return null;
+  };
+
+  const confirmarCampo = async (campo, editando, setEditando) => {
+    if (!editando) {
+      setError(null);
+      setEditando(true);
+      return;
+    }
+
+    const valor = campo === 'email' ? email : telefone;
+    const erroValidacao = validarCampo(campo, valor);
+
+    if (erroValidacao) {
+      setError(erroValidacao);
+      return;
+    }
+
+    setError(null);
+    const salvou = await salvarPerfil();
+
+    if (salvou) {
+      setEditando(false);
+    }
   };
 
   const sairDoApp = async () => {
@@ -81,7 +142,7 @@ export default function PerfilView({ navigation }) {
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
+      keyboardShouldPersistTaps="always"
       showsVerticalScrollIndicator={false}
     >
       <View
@@ -108,8 +169,9 @@ export default function PerfilView({ navigation }) {
         label="Email"
         value={email}
         editing={editEmail}
+        loading={loading}
         onChangeText={(v) => setCampo('email', v)}
-        onToggle={() => alternar(editEmail, setEditEmail)}
+        onToggle={() => confirmarCampo('email', editEmail, setEditEmail)}
         keyboardType="email-address"
       />
 
@@ -117,8 +179,9 @@ export default function PerfilView({ navigation }) {
         label="Telefone"
         value={telefone}
         editing={editTelefone}
+        loading={loading}
         onChangeText={(v) => setCampo('telefone', v)}
-        onToggle={() => alternar(editTelefone, setEditTelefone)}
+        onToggle={() => confirmarCampo('telefone', editTelefone, setEditTelefone)}
         keyboardType="phone-pad"
       />
 
@@ -206,6 +269,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  addonDisabled: { opacity: 0.55 },
   button: {
     flexDirection: 'row',
     alignItems: 'center',

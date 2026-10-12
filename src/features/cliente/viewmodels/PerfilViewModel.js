@@ -37,9 +37,15 @@ export function usePerfilViewModel() {
     try {
       const atualizado = await PerfilService.atualizar(perfil);
       setPerfil(atualizado);
+      global.paciente = {
+        ...(global.paciente ?? {}),
+        ...atualizado,
+      };
       setSucesso(true);
+      return true;
     } catch (e) {
       setError('Não foi possível salvar o perfil.');
+      return false;
     } finally {
       setLoading(false);
     }
@@ -80,6 +86,7 @@ export function usePerfilViewModel() {
     error,
     sucesso,
     setCampo,
+    setError,
     carregarPerfil,
     salvarPerfil,
     redefinirSenha,
