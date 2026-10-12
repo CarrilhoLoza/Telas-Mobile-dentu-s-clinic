@@ -38,6 +38,9 @@ npm install
 npx expo start -c
 ```
 
+No celular baixe o APK do `Expo Go` versão sdk 51;
+leia o código QR no terminal
+
 Para abrir no emulador Android:
 
 ```bash
