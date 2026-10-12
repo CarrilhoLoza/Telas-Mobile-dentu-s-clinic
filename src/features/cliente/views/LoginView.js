@@ -2,128 +2,159 @@ import React from 'react';
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
   TouchableOpacity,
-  Switch,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
+  Pressable,
 } from 'react-native';
+import { FontAwesome5, Feather } from '@expo/vector-icons';
 import { useLoginViewModel } from '../viewmodels/LoginViewModel';
+import FormField from '../../../components/FormField';
 import { colors } from '../../../theme/colors';
 
+function ToggleSwitch({ value, onValueChange }) {
+  return (
+    <Pressable
+      onPress={() => onValueChange(!value)}
+      style={[
+        styles.track,
+        value && { backgroundColor: colors.textLight, alignItems: 'flex-end' },
+      ]}
+    >
+      <View
+        style={[styles.thumb, value && { backgroundColor: colors.primary }]}
+      />
+    </Pressable>
+  );
+}
+
 export default function LoginView({ navigation }) {
-  const {
-    email,
-    senha,
-    manterLogado,
-    loading,
-    error,
-    setCampo,
-    entrar,
-  } = useLoginViewModel();
+  const { email, senha, manterLogado, loading, error, setCampo, entrar } =
+    useLoginViewModel();
 
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.welcome}>Bem-vindo ao</Text>
-        <Text style={styles.brand}>Dentu's Clinic</Text>
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.card}>
+          <View style={styles.header}>
+            <FontAwesome5 name="tooth" size={44} color={colors.textDark} />
+            <Text style={styles.welcome}>Bem-vindo ao</Text>
+            <Text style={styles.brand}>Dentu's Clinic</Text>
+          </View>
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+          {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <Text style={styles.label}>E-mail</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="usuario@dentusclinic.com"
-          placeholderTextColor="#999"
-          value={email}
-          onChangeText={(valor) => setCampo('email', valor)}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-
-        <Text style={styles.label}>Senha</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="••••••••"
-          placeholderTextColor="#999"
-          value={senha}
-          onChangeText={(valor) => setCampo('senha', valor)}
-          secureTextEntry
-        />
-
-        <View style={styles.switchRow}>
-          <Switch
-            value={manterLogado}
-            onValueChange={(valor) => setCampo('manterLogado', valor)}
+          <FormField
+            label="E-mail"
+            value={email}
+            onChangeText={(v) => setCampo('email', v)}
+            placeholder="usuario@dentusclinic.com"
+            keyboardType="email-address"
           />
-          <Text style={styles.switchText}>Manter Logado</Text>
-        </View>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => entrar(navigation)}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#FFF" />
-          ) : (
-            <Text style={styles.buttonText}>Entrar</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </View>
+          <FormField
+            label="Senha"
+            value={senha}
+            onChangeText={(v) => setCampo('senha', v)}
+            placeholder="••••••••"
+            secure
+          />
+
+          <View style={styles.switchRow}>
+            <ToggleSwitch
+              value={manterLogado}
+              onValueChange={(v) => setCampo('manterLogado', v)}
+            />
+            <Text style={styles.switchText}>Manter Logado</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => entrar(navigation)}
+            disabled={loading}
+            activeOpacity={0.85}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <View style={styles.buttonContent}>
+                <Feather name="log-in" size={16} color="#FFF" />
+                <Text style={styles.buttonText}>Entrar</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
+  flex: { flex: 1, backgroundColor: colors.background },
+  scroll: {
+    flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 24,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderRadius: 16,
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 48,
+    shadowColor: colors.textDark,
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 8,
   },
+  header: { alignItems: 'center', marginBottom: 32 },
   welcome: {
-    textAlign: 'center',
+    marginTop: 8,
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: 'Inter_600SemiBold',
     color: colors.primary,
+    textTransform: 'uppercase',
     letterSpacing: 1.8,
-    fontFamily: 'Inter_400Regular',
   },
   brand: {
-    textAlign: 'center',
-    fontSize: 26,
-    fontWeight: '700',
-    color: colors.textDark,
-    marginBottom: 32,
+    fontSize: 25.6,
     fontFamily: 'Merriweather_700Bold',
+    color: colors.textDark,
+    letterSpacing: 0.77,
   },
   error: {
     color: colors.danger,
-    marginBottom: 16,
     textAlign: 'center',
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 6,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  input: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
     marginBottom: 16,
-    fontSize: 16,
+    fontFamily: 'Inter_400Regular',
+  },
+  track: {
+    width: 32,
+    height: 16,
+    borderRadius: 16,
+    backgroundColor: colors.primary,
+    borderWidth: 1,
+    borderColor: colors.textLight,
+    padding: 2,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+  },
+  thumb: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.textLight,
   },
   switchRow: {
     flexDirection: 'row',
@@ -131,18 +162,23 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   switchText: {
-    marginLeft: 8,
+    marginLeft: 10,
+    fontSize: 16,
+    fontFamily: 'Inter_400Regular',
     color: colors.textDark,
   },
   button: {
-    backgroundColor: colors.primaryDark,
+    backgroundColor: colors.textDark,
     borderRadius: 8,
-    paddingVertical: 14,
+    paddingVertical: 13,
     alignItems: 'center',
   },
+  buttonContent: { flexDirection: 'row', alignItems: 'center' },
   buttonText: {
+    marginLeft: 8,
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontSize: 15.2,
     fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 0.6,
   },
 });

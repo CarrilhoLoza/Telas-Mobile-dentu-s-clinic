@@ -8,29 +8,40 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
+import { FontAwesome5, Feather } from '@expo/vector-icons';
 import { useConsultasViewModel } from '../viewmodels/ConsultasViewModel';
 import { colors } from '../../../theme/colors';
 
-function InfoConsulta({ item, confirmada }) {
+function InfoConsulta({ item }) {
   return (
     <>
       <Text style={styles.cardTitle}>{item.procedimento}</Text>
 
       <View style={styles.row}>
-        <View>
-          <Text style={styles.label}>Dentista</Text>
-          <Text style={styles.value}>{item.dentista}</Text>
+        <View style={styles.info}>
+          <FontAwesome5 name="user-md" size={24} color={colors.textDark} />
+          <View style={styles.infoText}>
+            <Text style={styles.label}>Dentista</Text>
+            <Text style={styles.value}>{item.dentista}</Text>
+          </View>
         </View>
 
-        <View>
-          <Text style={styles.label}>Horário</Text>
-          <Text style={styles.value}>{item.horario}</Text>
+        <View style={styles.info}>
+          <Feather name="clock" size={24} color={colors.textDark} />
+          <View style={styles.infoText}>
+            <Text style={styles.label}>Horário</Text>
+            <Text style={styles.value}>{item.horario}</Text>
+          </View>
         </View>
       </View>
 
-      <Text style={[styles.date, confirmada && styles.dateConfirmada]}>
-        {item.data}
-      </Text>
+      <View style={[styles.info, styles.dateRow]}>
+        <FontAwesome5 name="calendar-alt" size={40} color={colors.textDark} />
+        <View style={styles.infoText}>
+          <Text style={styles.dateLabel}>Data</Text>
+          <Text style={styles.date}>{item.data}</Text>
+        </View>
+      </View>
     </>
   );
 }
@@ -53,7 +64,7 @@ export default function ConsultasView() {
   if (loading && pendentes.length === 0 && confirmadas.length === 0) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.primaryDark} />
+        <ActivityIndicator size="large" color={colors.textDark} />
       </View>
     );
   }
@@ -61,51 +72,50 @@ export default function ConsultasView() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Consultas</Text>
-      <Text style={styles.subtitle}>Suas consultas agendadas</Text>
+      <Text style={styles.subtitle}>Suas Consultas agendadas</Text>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={{ paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={loading}
             onRefresh={carregarConsultas}
-            colors={[colors.primaryDark]}
+            colors={[colors.textDark]}
           />
         }
       >
-        {/* ACIMA DA LINHA: consultas aguardando resposta */}
         {pendentes.map((item) => (
           <View key={item.id} style={styles.card}>
             <InfoConsulta item={item} />
 
             <View style={styles.actions}>
               <TouchableOpacity
-                style={[styles.button, styles.secondaryButton]}
+                style={[styles.button, styles.refuseButton]}
                 onPress={() => recusarConsulta(item.id)}
+                activeOpacity={0.8}
               >
-                <Text style={styles.secondaryButtonText}>Recusar</Text>
+                <Text style={styles.refuseText}>Recusar</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.button, styles.primaryButton]}
+                style={[styles.button, styles.confirmButton]}
                 onPress={() => confirmarConsulta(item.id)}
+                activeOpacity={0.8}
               >
-                <Text style={styles.primaryButtonText}>Confirmar</Text>
+                <Text style={styles.confirmText}>Confirmar</Text>
               </TouchableOpacity>
             </View>
           </View>
         ))}
 
-        {/* LINHA DIVISÓRIA */}
         <View style={styles.divider} />
 
-        {/* ABAIXO DA LINHA: consultas confirmadas (cards brancos) */}
         {confirmadas.map((item) => (
           <View key={item.id} style={[styles.card, styles.cardConfirmada]}>
-            <InfoConsulta item={item} confirmada />
+            <InfoConsulta item={item} />
           </View>
         ))}
 
@@ -121,8 +131,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    paddingHorizontal: 24,
-    paddingTop: 48,
+    paddingHorizontal: 35,
+    paddingTop: 70,
   },
   center: {
     flex: 1,
@@ -131,110 +141,99 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   title: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: colors.text,
+    fontSize: 25.6,
     fontFamily: 'Merriweather_700Bold',
+    color: colors.textLight,
   },
   subtitle: {
     fontSize: 12,
+    fontFamily: 'Merriweather_400Regular',
     color: colors.textDark,
     marginTop: 4,
-    marginBottom: 24,
-    fontFamily: 'Merriweather_400Regular',
+    marginBottom: 20,
   },
-  error: {
-    color: colors.danger,
-    marginBottom: 12,
+  error: { color: colors.danger, marginBottom: 12 },
+  card: {
+    backgroundColor: colors.primary,
+    borderWidth: 1,
+    borderColor: colors.surface,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
   },
-  empty: {
-    textAlign: 'center',
-    color: colors.primary,
-    fontWeight: '700',
+  cardConfirmada: {
+    backgroundColor: colors.surface,
+    borderColor: colors.primary,
+  },
+  cardTitle: {
+    fontSize: 25.6,
+    fontFamily: 'Merriweather_700Bold',
+    color: colors.textLight,
+    letterSpacing: 0.77,
+    marginBottom: 18,
+  },
+  row: { flexDirection: 'row', justifyContent: 'space-between' },
+  info: { flexDirection: 'row', alignItems: 'center' },
+  infoText: { marginLeft: 10 },
+  label: {
     fontSize: 10,
-    marginTop: 8,
+    fontFamily: 'Merriweather_700Bold',
+    color: colors.textLight,
+  },
+  value: {
+    fontSize: 15,
+    fontFamily: 'Merriweather_700Bold',
+    color: colors.textDark,
+  },
+  dateRow: { marginTop: 22 },
+  dateLabel: {
+    fontSize: 13,
+    fontFamily: 'Merriweather_700Bold',
+    color: colors.textLight,
+  },
+  date: {
+    fontSize: 18,
+    fontFamily: 'Merriweather_700Bold',
+    color: colors.textDark,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 22,
+  },
+  button: {
+    width: '48%',
+    height: 42,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  refuseButton: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.brown,
+  },
+  confirmButton: { backgroundColor: colors.accent },
+  refuseText: {
+    color: colors.brown,
+    fontSize: 15,
+    fontFamily: 'Merriweather_700Bold',
+  },
+  confirmText: {
+    color: colors.white,
+    fontSize: 15,
     fontFamily: 'Merriweather_700Bold',
   },
   divider: {
     height: 1,
     backgroundColor: colors.primary,
-    marginTop: 4,
     marginBottom: 20,
   },
-  card: {
-    backgroundColor: colors.primary,
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
-  },
-  cardConfirmada: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
-  cardTitle: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 16,
-    fontFamily: 'Merriweather_700Bold',
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  label: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.text,
-    fontFamily: 'Merriweather_700Bold',
-  },
-  value: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textDark,
-    fontFamily: 'Merriweather_700Bold',
-  },
-  date: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.textDark,
+  empty: {
     textAlign: 'center',
-    marginTop: 24,
-    marginBottom: 24,
+    color: colors.primary,
+    fontSize: 10,
     fontFamily: 'Merriweather_700Bold',
-  },
-  dateConfirmada: {
-    marginBottom: 0,
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  button: {
-    flex: 1,
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  primaryButton: {
-    backgroundColor: colors.primaryDark,
-    marginLeft: 8,
-  },
-  secondaryButton: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: colors.primaryDark,
-    marginRight: 8,
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontFamily: 'Merriweather_700Bold',
-  },
-  secondaryButtonText: {
-    color: colors.primaryDark,
-    fontWeight: '700',
-    fontFamily: 'Merriweather_700Bold',
+    marginTop: 4,
   },
 });

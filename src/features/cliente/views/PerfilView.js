@@ -1,182 +1,223 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
+  ScrollView,
+  Pressable,
+  useWindowDimensions,
 } from 'react-native';
+import { FontAwesome5, Feather } from '@expo/vector-icons';
+import { CommonActions } from '@react-navigation/native';
 import { usePerfilViewModel } from '../viewmodels/PerfilViewModel';
 import { colors } from '../../../theme/colors';
 
+function EditableField({ label, value, editing, onToggle, onChangeText, keyboardType }) {
+  return (
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+
+      <View style={styles.group}>
+        <TextInput
+          style={[styles.input, !editing && styles.inputDisabled]}
+          value={value}
+          editable={editing}
+          onChangeText={onChangeText}
+          keyboardType={keyboardType}
+          autoCapitalize="none"
+        />
+
+        <Pressable style={styles.addon} onPress={onToggle} hitSlop={6}>
+          <Feather
+            name={editing ? 'check' : 'edit-2'}
+            size={20}
+            color="#000000"
+          />
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
 export default function PerfilView({ navigation }) {
-  const {
-    perfil,
-    loading,
-    error,
-    sucesso,
-    setCampo,
-    carregarPerfil,
-    salvarPerfil,
-    sair,
-  } = usePerfilViewModel();
+  const { width } = useWindowDimensions();
+  const avatar = Math.min(234, width * 0.58);
+
+  const { perfil, error, sucesso, setCampo, carregarPerfil, salvarPerfil, sair } =
+    usePerfilViewModel();
+
+  const [editEmail, setEditEmail] = useState(false);
+  const [editTelefone, setEditTelefone] = useState(false);
 
   useEffect(() => {
     carregarPerfil();
-  }, [carregarPerfil]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const nome = perfil.nome || global.paciente?.nome || '';
+  const email = perfil.email || global.paciente?.email || '';
+  const telefone = perfil.telefone || global.paciente?.telefone || '';
+
+  const alternar = async (editando, setEditando) => {
+    if (editando) await salvarPerfil();
+    setEditando(!editando);
+  };
+
+  const sairDoApp = async () => {
+    try {
+      await sair();
+    } catch (e) {
+      // sem back-end ainda: segue para o login mesmo assim
+    }
+
+    navigation.dispatch(
+      CommonActions.reset({ index: 0, routes: [{ name: 'Login' }] })
+    );
+  };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.avatar}>
-        <Text style={styles.avatarIcon}>👤</Text>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
+      <View
+        style={[
+          styles.avatar,
+          { width: avatar, height: avatar, borderRadius: avatar / 2 },
+        ]}
+      >
+        <FontAwesome5 name="user-alt" size={avatar * 0.47} color={colors.textDark} />
+
+        <View style={styles.editBadge}>
+          <Feather name="edit-2" size={18} color="#000" />
+        </View>
       </View>
 
-      <Text style={styles.nome}>{perfil.nome || 'Perfil'}</Text>
+      <Text style={styles.nome}>{nome}</Text>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {sucesso ? (
         <Text style={styles.sucesso}>Perfil atualizado com sucesso.</Text>
       ) : null}
 
-      <View style={styles.field}>
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={[styles.input, styles.disabled]}
-          value={perfil.email}
-          editable={false}
-        />
-      </View>
+      <EditableField
+        label="Email"
+        value={email}
+        editing={editEmail}
+        onChangeText={(v) => setCampo('email', v)}
+        onToggle={() => alternar(editEmail, setEditEmail)}
+        keyboardType="email-address"
+      />
 
-      <View style={styles.field}>
-        <Text style={styles.label}>Telefone</Text>
-        <TextInput
-          style={styles.input}
-          value={perfil.telefone}
-          onChangeText={(valor) => setCampo('telefone', valor)}
-          keyboardType="phone-pad"
-        />
-      </View>
+      <EditableField
+        label="Telefone"
+        value={telefone}
+        editing={editTelefone}
+        onChangeText={(v) => setCampo('telefone', v)}
+        onToggle={() => alternar(editTelefone, setEditTelefone)}
+        keyboardType="phone-pad"
+      />
 
       <TouchableOpacity
-        style={styles.secondaryButton}
+        style={[styles.button, { backgroundColor: colors.primary, marginTop: 28 }]}
         onPress={() => navigation.navigate('RedefinirSenha')}
+        activeOpacity={0.85}
       >
-        <Text style={styles.secondaryButtonText}>Redefinir Senha</Text>
+        <Feather name="lock" size={16} color="#FFF" />
+        <Text style={styles.buttonText}>Redefinir Senha</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.primaryButton}
-        onPress={async () => {
-          await sair();
-          navigation.replace('Login');
-        }}
+        style={[styles.button, { backgroundColor: colors.brown, marginTop: 20 }]}
+        onPress={sairDoApp}
+        activeOpacity={0.85}
       >
-        <Text style={styles.primaryButtonText}>Sair</Text>
+        <Feather name="log-out" size={16} color="#FFF" />
+        <Text style={styles.buttonText}>Sair</Text>
       </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.saveButton}
-        onPress={salvarPerfil}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator color="#FFF" />
-        ) : (
-          <Text style={styles.primaryButtonText}>Salvar</Text>
-        )}
-      </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: 24,
-    paddingTop: 48,
-  },
+  container: { flex: 1, backgroundColor: colors.background },
+  content: { paddingHorizontal: 40, paddingTop: 66, paddingBottom: 32 },
   avatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: colors.surface,
     alignSelf: 'center',
-    justifyContent: 'center',
+    backgroundColor: colors.surface,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  avatarIcon: {
-    fontSize: 48,
+  editBadge: {
+    position: 'absolute',
+    right: 4,
+    bottom: 4,
+    width: 47,
+    height: 47,
+    borderRadius: 24,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   nome: {
     textAlign: 'center',
     fontSize: 20,
-    fontWeight: '700',
-    color: colors.text,
-    marginTop: 16,
     fontFamily: 'Merriweather_700Bold',
+    color: colors.textLight,
+    letterSpacing: 0.77,
+    marginTop: 14,
+    marginBottom: 20,
   },
-  error: {
-    color: colors.danger,
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  sucesso: {
-    color: colors.success,
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  field: {
-    marginTop: 24,
-  },
-  label: {
+  error: { color: colors.danger, textAlign: 'center', marginBottom: 8 },
+  sucesso: { color: colors.success, textAlign: 'center', marginBottom: 8 },
+  field: { marginBottom: 16 },
+  fieldLabel: {
     fontSize: 16,
-    color: '#212529',
-    marginBottom: 8,
     fontFamily: 'Inter_400Regular',
+    color: colors.formLabel,
+    marginBottom: 8,
   },
+  group: { flexDirection: 'row', height: 40 },
   input: {
-    backgroundColor: colors.surface,
+    flex: 1,
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: '#DEE2E6',
-    borderRadius: 6,
+    borderColor: colors.inputBorder,
+    borderTopLeftRadius: 6,
+    borderBottomLeftRadius: 6,
     paddingHorizontal: 12,
-    paddingVertical: 10,
     fontSize: 16,
+    fontFamily: 'Inter_400Regular',
+    color: '#212529',
   },
-  disabled: {
-    opacity: 0.75,
-  },
-  secondaryButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 8,
-    paddingVertical: 14,
+  inputDisabled: { backgroundColor: colors.inputDisabled },
+  addon: {
+    width: 59,
+    backgroundColor: colors.addon,
+    borderWidth: 1,
+    borderLeftWidth: 0,
+    borderColor: colors.inputBorder,
+    borderTopRightRadius: 8,
+    borderBottomRightRadius: 8,
     alignItems: 'center',
-    marginTop: 32,
+    justifyContent: 'center',
   },
-  secondaryButtonText: {
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 45,
+    borderRadius: 8,
+  },
+  buttonText: {
+    marginLeft: 8,
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontSize: 15.2,
     fontFamily: 'Inter_600SemiBold',
-  },
-  primaryButton: {
-    backgroundColor: colors.primaryDark,
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  saveButton: {
-    backgroundColor: colors.primaryDark,
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 0.6,
   },
 });
