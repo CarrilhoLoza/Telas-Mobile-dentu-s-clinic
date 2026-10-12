@@ -9,6 +9,7 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontAwesome5, Feather } from '@expo/vector-icons';
 import { usePerfilViewModel } from '../viewmodels/PerfilViewModel';
 import FormField from '../../../components/FormField';
@@ -16,6 +17,7 @@ import { colors } from '../../../theme/colors';
 
 export default function RedefinirSenhaView({ navigation }) {
   const { redefinirSenha, error, sucesso } = usePerfilViewModel();
+  const insets = useSafeAreaInsets();
 
   const [senhaAtual, setSenhaAtual] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
@@ -33,19 +35,25 @@ export default function RedefinirSenhaView({ navigation }) {
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <TouchableOpacity
+        style={[styles.back, { top: insets.top + 8 }]}
+        onPress={() => navigation.goBack()}
+        activeOpacity={0.85}
+      >
+        <Feather name="chevron-left" size={26} color="#FFFBEA" />
+      </TouchableOpacity>
+
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[
+          styles.scroll,
+          {
+            paddingTop: insets.top + 16,
+            paddingBottom: insets.bottom + 24,
+          },
+        ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <TouchableOpacity
-          style={styles.back}
-          onPress={() => navigation.goBack()}
-          activeOpacity={0.85}
-        >
-          <Feather name="chevron-left" size={26} color="#FFFBEA" />
-        </TouchableOpacity>
-
         <View style={styles.card}>
           <View style={styles.header}>
             <FontAwesome5 name="key" size={44} color={colors.textDark} />
@@ -104,15 +112,21 @@ export default function RedefinirSenhaView({ navigation }) {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
-  scroll: { flexGrow: 1, paddingHorizontal: 16, paddingTop: 25, paddingBottom: 24 },
+  scroll: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
   back: {
+    position: 'absolute',
+    left: 16,
     width: 46,
     height: 46,
     borderRadius: 23,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
+    zIndex: 10,
   },
   card: {
     backgroundColor: colors.white,
