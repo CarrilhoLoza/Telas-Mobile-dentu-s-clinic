@@ -25,9 +25,9 @@ const QUADRANTES = {
   inferiorEsquerdo: ['31', '32', '33', '34', '35', '36', '37', '38'],
 };
 
-function Quadrante({ dentes, denteTratado }) {
+function Arcada({ dentes, denteTratado }) {
   return (
-    <View style={styles.quadrante}>
+    <View style={styles.arcada}>
       {dentes.map((dente) => (
         <View
           key={dente}
@@ -63,11 +63,20 @@ export default function ProntuarioExpandidoView({ route, navigation }) {
   const dentista = prontuario.dentista ?? 'Gustavo';
   const denteTratado = prontuario.denteTratado ?? '48';
 
+  const dentesSuperiores = [
+    ...QUADRANTES.superiorDireito,
+    ...QUADRANTES.superiorEsquerdo,
+  ];
+  const dentesInferiores = [
+    ...QUADRANTES.inferiorDireito,
+    ...QUADRANTES.inferiorEsquerdo,
+  ];
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.c3} />
 
-      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}> 
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -99,32 +108,12 @@ export default function ProntuarioExpandidoView({ route, navigation }) {
           <Text style={styles.cardTitle}>Odontograma</Text>
 
           <Text style={styles.arcadaLabel}>ARCADA SUPERIOR</Text>
-          <View style={styles.arcada}>
-            <Quadrante
-              dentes={QUADRANTES.superiorDireito}
-              denteTratado={denteTratado}
-            />
-            <View style={styles.midline} />
-            <Quadrante
-              dentes={QUADRANTES.superiorEsquerdo}
-              denteTratado={denteTratado}
-            />
-          </View>
+          <Arcada dentes={dentesSuperiores} denteTratado={denteTratado} />
 
           <View style={styles.divider} />
 
           <Text style={styles.arcadaLabel}>ARCADA INFERIOR</Text>
-          <View style={styles.arcada}>
-            <Quadrante
-              dentes={QUADRANTES.inferiorDireito}
-              denteTratado={denteTratado}
-            />
-            <View style={styles.midline} />
-            <Quadrante
-              dentes={QUADRANTES.inferiorEsquerdo}
-              denteTratado={denteTratado}
-            />
-          </View>
+          <Arcada dentes={dentesInferiores} denteTratado={denteTratado} />
 
           {denteTratado ? (
             <View style={styles.legendRow}>
@@ -262,23 +251,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  quadrante: {
-    flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'nowrap',
-    justifyContent: 'space-between',
-    minWidth: 0,
-  },
-  midline: {
-    width: 1,
-    alignSelf: 'stretch',
-    backgroundColor: COLORS.c3,
-    marginHorizontal: 3,
+    gap: 1,
   },
   tooth: {
-    width: 17,
-    height: 34,
+    width: 16,
+    height: 30,
     borderRadius: 4,
     backgroundColor: COLORS.c4,
     borderWidth: 1,
@@ -292,7 +269,7 @@ const styles = StyleSheet.create({
   },
   toothText: {
     color: COLORS.c1,
-    fontSize: 7,
+    fontSize: 6,
     fontFamily: 'Inter_400Regular',
   },
   toothTextSelected: {
