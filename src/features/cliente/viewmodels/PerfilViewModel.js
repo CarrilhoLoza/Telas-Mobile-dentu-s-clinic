@@ -7,12 +7,13 @@ export function usePerfilViewModel() {
     email: '',
     telefone: '',
   });
-  const [loading, setLoading] = useState(false);
+  const [carregandoPerfil, setCarregandoPerfil] = useState(false);
+  const [salvandoPerfil, setSalvandoPerfil] = useState(false);
   const [error, setError] = useState(null);
   const [sucesso, setSucesso] = useState(false);
 
   const carregarPerfil = useCallback(async () => {
-    setLoading(true);
+    setCarregandoPerfil(true);
     setError(null);
 
     try {
@@ -21,7 +22,7 @@ export function usePerfilViewModel() {
     } catch (e) {
       setError('Não foi possível carregar o perfil.');
     } finally {
-      setLoading(false);
+      setCarregandoPerfil(false);
     }
   }, []);
 
@@ -30,7 +31,11 @@ export function usePerfilViewModel() {
   }, []);
 
   const salvarPerfil = useCallback(async () => {
-    setLoading(true);
+    if (salvandoPerfil) {
+      return false;
+    }
+
+    setSalvandoPerfil(true);
     setError(null);
     setSucesso(false);
 
@@ -47,9 +52,9 @@ export function usePerfilViewModel() {
       setError('Não foi possível salvar o perfil.');
       return false;
     } finally {
-      setLoading(false);
+      setSalvandoPerfil(false);
     }
-  }, [perfil]);
+  }, [perfil, salvandoPerfil]);
 
   const redefinirSenha = useCallback(
     async ({ senhaAtual, novaSenha, confirmarNovaSenha }) => {
@@ -82,7 +87,8 @@ export function usePerfilViewModel() {
 
   return {
     perfil,
-    loading,
+    carregandoPerfil,
+    salvandoPerfil,
     error,
     sucesso,
     setCampo,

@@ -18,7 +18,7 @@ function EditableField({
   label,
   value,
   editing,
-  loading,
+  salvando,
   onToggle,
   onChangeText,
   keyboardType,
@@ -31,7 +31,7 @@ function EditableField({
         <TextInput
           style={[styles.input, !editing && styles.inputDisabled]}
           value={value}
-          editable={editing && !loading}
+          editable={editing && !salvando}
           onChangeText={onChangeText}
           keyboardType={keyboardType}
           autoCapitalize="none"
@@ -39,9 +39,8 @@ function EditableField({
         />
 
         <Pressable
-          style={[styles.addon, loading && styles.addonDisabled]}
+          style={[styles.addon, salvando && styles.addonDisabled]}
           onPress={onToggle}
-          disabled={loading}
           hitSlop={10}
           accessibilityRole="button"
           accessibilityLabel={editing ? `Salvar ${label}` : `Editar ${label}`}
@@ -63,7 +62,7 @@ export default function PerfilView({ navigation }) {
 
   const {
     perfil,
-    loading,
+    salvandoPerfil,
     error,
     sucesso,
     setCampo,
@@ -104,6 +103,10 @@ export default function PerfilView({ navigation }) {
   };
 
   const confirmarCampo = async (campo, editando, setEditando) => {
+    if (salvandoPerfil) {
+      return;
+    }
+
     if (!editando) {
       setError(null);
       setEditando(true);
@@ -169,7 +172,7 @@ export default function PerfilView({ navigation }) {
         label="Email"
         value={email}
         editing={editEmail}
-        loading={loading}
+        salvando={salvandoPerfil}
         onChangeText={(v) => setCampo('email', v)}
         onToggle={() => confirmarCampo('email', editEmail, setEditEmail)}
         keyboardType="email-address"
@@ -179,7 +182,7 @@ export default function PerfilView({ navigation }) {
         label="Telefone"
         value={telefone}
         editing={editTelefone}
-        loading={loading}
+        salvando={salvandoPerfil}
         onChangeText={(v) => setCampo('telefone', v)}
         onToggle={() => confirmarCampo('telefone', editTelefone, setEditTelefone)}
         keyboardType="phone-pad"
