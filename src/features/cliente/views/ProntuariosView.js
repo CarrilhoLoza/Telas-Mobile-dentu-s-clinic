@@ -11,7 +11,7 @@ import { Feather } from '@expo/vector-icons';
 import { useProntuariosViewModel } from '../viewmodels/ProntuariosViewModel';
 import { colors } from '../../../theme/colors';
 
-export default function ProntuariosView() {
+export default function ProntuariosView({ navigation }) {
   const { prontuarios, paciente, loading, error, carregarProntuarios } =
     useProntuariosViewModel();
 
@@ -66,7 +66,15 @@ export default function ProntuariosView() {
             <Text style={styles.cardDentista}>Dentista: {item.dentista}</Text>
             <Text style={styles.cardDescription}>{item.descricao}</Text>
 
-            <TouchableOpacity style={styles.documentButton} activeOpacity={0.8}>
+            <TouchableOpacity
+              style={styles.documentButton}
+              activeOpacity={0.8}
+              onPress={() =>
+                navigation.navigate('ProntuarioExpandido', {
+                  prontuario: item,
+                })
+              }
+            >
               <Feather name="file-text" size={14} color={colors.textDark} />
               <Text style={styles.documentText}>{item.documentoTitulo}  ›</Text>
             </TouchableOpacity>

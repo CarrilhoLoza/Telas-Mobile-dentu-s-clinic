@@ -5,12 +5,26 @@ import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 
 import ConsultasView from '../features/cliente/views/ConsultasView';
 import ProntuariosView from '../features/cliente/views/ProntuariosView';
+import ProntuarioExpandidoView from '../features/cliente/views/ProntuarioExpandidoView';
 import PerfilView from '../features/cliente/views/PerfilView';
 import RedefinirSenhaView from '../features/cliente/views/RedefinirSenhaView';
 import BottomTabBar from '../components/BottomTabBar';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
+function ProntuariosStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="ProntuariosHome" component={ProntuariosView} />
+      <Stack.Screen
+        name="ProntuarioExpandido"
+        component={ProntuarioExpandidoView}
+        options={{ tabBarStyle: { display: 'none' } }}
+      />
+    </Stack.Navigator>
+  );
+}
 
 function PerfilStack() {
   return (
@@ -28,7 +42,7 @@ export default function ClienteNavigator() {
       screenOptions={{ headerShown: false }}
     >
       <Tab.Screen name="Consultas" component={ConsultasView} />
-      <Tab.Screen name="Prontuários" component={ProntuariosView} />
+      <Tab.Screen name="Prontuários" component={ProntuariosStack} />
       <Tab.Screen
         name="Perfil"
         component={PerfilStack}
