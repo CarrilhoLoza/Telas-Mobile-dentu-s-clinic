@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Dentus Clinic",
+    "slug": "dentus-clinic",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#E7E7DB"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.dentusclinic.app"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
