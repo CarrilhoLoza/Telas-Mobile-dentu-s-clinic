@@ -7,6 +7,7 @@ Aplicativo mobile da área do cliente da clínica, gerado a partir da seção **
 - Login
 - Consultas
 - Prontuários
+- Prontuarios Expandido
 - Perfil
 - Redefinir senha
 
