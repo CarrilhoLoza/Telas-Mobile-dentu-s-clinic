@@ -18,8 +18,34 @@ const COLORS = {
   c5: '#F9F9F9',
 };
 
-const TEETH_SUPERIORES = ['18', '17', '16', '15', '14', '13', '12', '11', '21', '22', '23', '24', '25', '26', '27', '28'];
-const TEETH_INFERIORES = ['48', '47', '46', '45', '44', '43', '42', '41', '31', '32', '33', '34', '35', '36', '37', '38'];
+const QUADRANTES = {
+  superiorDireito: ['18', '17', '16', '15', '14', '13', '12', '11'],
+  superiorEsquerdo: ['21', '22', '23', '24', '25', '26', '27', '28'],
+  inferiorDireito: ['48', '47', '46', '45', '44', '43', '42', '41'],
+  inferiorEsquerdo: ['31', '32', '33', '34', '35', '36', '37', '38'],
+};
+
+function Quadrante({ dentes, denteTratado }) {
+  return (
+    <View style={styles.quadrante}>
+      {dentes.map((dente) => (
+        <View
+          key={dente}
+          style={[styles.tooth, dente === denteTratado && styles.toothSelected]}
+        >
+          <Text
+            style={[
+              styles.toothText,
+              dente === denteTratado && styles.toothTextSelected,
+            ]}
+          >
+            {dente}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+}
 
 export default function ProntuarioExpandidoView({ route, navigation }) {
   const insets = useSafeAreaInsets();
@@ -73,45 +99,41 @@ export default function ProntuarioExpandidoView({ route, navigation }) {
           <Text style={styles.cardTitle}>Odontograma</Text>
 
           <Text style={styles.arcadaLabel}>ARCADA SUPERIOR</Text>
-          <View style={styles.teethRow}>
-            {TEETH_SUPERIORES.map((dente) => (
-              <View
-                key={dente}
-                style={[styles.tooth, dente === denteTratado && styles.toothSelected]}
-              >
-                <Text
-                  style={[styles.toothText, dente === denteTratado && styles.toothTextSelected]}
-                >
-                  {dente}
-                </Text>
-              </View>
-            ))}
+          <View style={styles.arcada}>
+            <Quadrante
+              dentes={QUADRANTES.superiorDireito}
+              denteTratado={denteTratado}
+            />
+            <View style={styles.midline} />
+            <Quadrante
+              dentes={QUADRANTES.superiorEsquerdo}
+              denteTratado={denteTratado}
+            />
           </View>
 
           <View style={styles.divider} />
 
           <Text style={styles.arcadaLabel}>ARCADA INFERIOR</Text>
-          <View style={styles.teethRow}>
-            {TEETH_INFERIORES.map((dente) => (
-              <View
-                key={dente}
-                style={[styles.tooth, dente === denteTratado && styles.toothSelected]}
-              >
-                <Text
-                  style={[styles.toothText, dente === denteTratado && styles.toothTextSelected]}
-                >
-                  {dente}
-                </Text>
-              </View>
-            ))}
+          <View style={styles.arcada}>
+            <Quadrante
+              dentes={QUADRANTES.inferiorDireito}
+              denteTratado={denteTratado}
+            />
+            <View style={styles.midline} />
+            <Quadrante
+              dentes={QUADRANTES.inferiorEsquerdo}
+              denteTratado={denteTratado}
+            />
           </View>
 
-          <View style={styles.legendRow}>
-            <View style={styles.legendDot} />
-            <Text style={styles.legendText}>
-              Tratado em consulta (dente {denteTratado})
-            </Text>
-          </View>
+          {denteTratado ? (
+            <View style={styles.legendRow}>
+              <View style={styles.legendDot} />
+              <Text style={styles.legendText}>
+                Tratado em consulta (dente {denteTratado})
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         <View style={[styles.infoCard, styles.conditionCard]}>
@@ -236,14 +258,27 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     marginBottom: 8,
   },
-  teethRow: {
+  arcada: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quadrante: {
+    flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'center',
     gap: 2,
   },
+  midline: {
+    width: 1,
+    alignSelf: 'stretch',
+    backgroundColor: COLORS.c3,
+    marginHorizontal: 4,
+  },
   tooth: {
-    width: 34,
-    height: 48,
+    width: 32,
+    height: 42,
     borderRadius: 4,
     backgroundColor: COLORS.c4,
     borderWidth: 1,
