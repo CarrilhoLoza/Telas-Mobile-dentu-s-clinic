@@ -266,19 +266,19 @@ const styles = StyleSheet.create({
   quadrante: {
     flex: 1,
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 2,
+    flexWrap: 'nowrap',
+    justifyContent: 'space-between',
+    minWidth: 0,
   },
   midline: {
     width: 1,
     alignSelf: 'stretch',
     backgroundColor: COLORS.c3,
-    marginHorizontal: 4,
+    marginHorizontal: 3,
   },
   tooth: {
-    width: 32,
-    height: 42,
+    width: 17,
+    height: 34,
     borderRadius: 4,
     backgroundColor: COLORS.c4,
     borderWidth: 1,
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   },
   toothText: {
     color: COLORS.c1,
-    fontSize: 10,
+    fontSize: 7,
     fontFamily: 'Inter_400Regular',
   },
   toothTextSelected: {
