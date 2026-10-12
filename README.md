@@ -34,7 +34,7 @@ src/
 
 ```bash
 npm install
-npx expo start
+npx expo start -c
 ```
 
 Para abrir no emulador Android:
