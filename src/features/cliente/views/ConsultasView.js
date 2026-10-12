@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import {
   View,
   Text,
-  FlatList,
+  ScrollView,
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
@@ -11,9 +11,34 @@ import {
 import { useConsultasViewModel } from '../viewmodels/ConsultasViewModel';
 import { colors } from '../../../theme/colors';
 
+function InfoConsulta({ item, confirmada }) {
+  return (
+    <>
+      <Text style={styles.cardTitle}>{item.procedimento}</Text>
+
+      <View style={styles.row}>
+        <View>
+          <Text style={styles.label}>Dentista</Text>
+          <Text style={styles.value}>{item.dentista}</Text>
+        </View>
+
+        <View>
+          <Text style={styles.label}>Horário</Text>
+          <Text style={styles.value}>{item.horario}</Text>
+        </View>
+      </View>
+
+      <Text style={[styles.date, confirmada && styles.dateConfirmada]}>
+        {item.data}
+      </Text>
+    </>
+  );
+}
+
 export default function ConsultasView() {
   const {
-    consultas,
+    pendentes,
+    confirmadas,
     loading,
     error,
     carregarConsultas,
@@ -25,7 +50,7 @@ export default function ConsultasView() {
     carregarConsultas();
   }, [carregarConsultas]);
 
-  if (loading && consultas.length === 0) {
+  if (loading && pendentes.length === 0 && confirmadas.length === 0) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color={colors.primaryDark} />
@@ -40,10 +65,9 @@ export default function ConsultasView() {
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <FlatList
-        data={consultas}
-        keyExtractor={(item) => String(item.id)}
+      <ScrollView
         contentContainerStyle={{ paddingBottom: 24 }}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={loading}
@@ -51,28 +75,11 @@ export default function ConsultasView() {
             colors={[colors.primaryDark]}
           />
         }
-        ListEmptyComponent={
-          <Text style={styles.empty}>
-            Sem mais consultas agendadas.
-          </Text>
-        }
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{item.procedimento}</Text>
-
-            <View style={styles.row}>
-              <View>
-                <Text style={styles.label}>Dentista</Text>
-                <Text style={styles.value}>{item.dentista}</Text>
-              </View>
-
-              <View>
-                <Text style={styles.label}>Horário</Text>
-                <Text style={styles.value}>{item.horario}</Text>
-              </View>
-            </View>
-
-            <Text style={styles.date}>{item.data}</Text>
+      >
+        {/* ACIMA DA LINHA: consultas aguardando resposta */}
+        {pendentes.map((item) => (
+          <View key={item.id} style={styles.card}>
+            <InfoConsulta item={item} />
 
             <View style={styles.actions}>
               <TouchableOpacity
@@ -90,8 +97,22 @@ export default function ConsultasView() {
               </TouchableOpacity>
             </View>
           </View>
-        )}
-      />
+        ))}
+
+        {/* LINHA DIVISÓRIA */}
+        <View style={styles.divider} />
+
+        {/* ABAIXO DA LINHA: consultas confirmadas (cards brancos) */}
+        {confirmadas.map((item) => (
+          <View key={item.id} style={[styles.card, styles.cardConfirmada]}>
+            <InfoConsulta item={item} confirmada />
+          </View>
+        ))}
+
+        {pendentes.length === 0 ? (
+          <Text style={styles.empty}>Sem Mais Consultas Agendadas</Text>
+        ) : null}
+      </ScrollView>
     </View>
   );
 }
@@ -130,13 +151,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: colors.primary,
     fontWeight: '700',
-    marginTop: 32,
+    fontSize: 10,
+    marginTop: 8,
+    fontFamily: 'Merriweather_700Bold',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.primary,
+    marginTop: 4,
+    marginBottom: 20,
   },
   card: {
     backgroundColor: colors.primary,
     borderRadius: 20,
     padding: 20,
     marginBottom: 16,
+  },
+  cardConfirmada: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.primary,
   },
   cardTitle: {
     fontSize: 26,
@@ -169,6 +203,9 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 24,
     fontFamily: 'Merriweather_700Bold',
+  },
+  dateConfirmada: {
+    marginBottom: 0,
   },
   actions: {
     flexDirection: 'row',

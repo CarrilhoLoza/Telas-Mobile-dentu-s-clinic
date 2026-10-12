@@ -1,5 +1,17 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { LayoutAnimation, Platform, UIManager } from 'react-native';
 import { ConsultaService } from '../services/ConsultaService';
+
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+// Animação suave quando um bloco some ou muda de posição.
+const animarLista = () =>
+  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
 export function useConsultasViewModel() {
   const [consultas, setConsultas] = useState([]);
@@ -20,13 +32,18 @@ export function useConsultasViewModel() {
     }
   }, []);
 
+  // CONFIRMAR: o bloco continua na lista, mas passa a ter status
+  // "Confirmada" e desce para a área abaixo da linha (card branco).
   const confirmarConsulta = useCallback(async (id) => {
     try {
-      const atualizada = await ConsultaService.confirmar(id);
+      const resposta = await ConsultaService.confirmar(id);
 
+      animarLista();
       setConsultas((atual) =>
         atual.map((consulta) =>
-          consulta.id === id ? atualizada : consulta
+          consulta.id === id
+            ? { ...consulta, ...resposta, status: 'Confirmada' }
+            : consulta
         )
       );
     } catch (e) {
@@ -34,22 +51,34 @@ export function useConsultasViewModel() {
     }
   }, []);
 
+  // RECUSAR: o bloco é removido da lista e os demais sobem.
   const recusarConsulta = useCallback(async (id) => {
     try {
-      const atualizada = await ConsultaService.recusar(id);
+      await ConsultaService.recusar(id);
 
-      setConsultas((atual) =>
-        atual.map((consulta) =>
-          consulta.id === id ? atualizada : consulta
-        )
-      );
+      animarLista();
+      setConsultas((atual) => atual.filter((consulta) => consulta.id !== id));
     } catch (e) {
       setError('Não foi possível recusar a consulta.');
     }
   }, []);
 
+  // Consultas aguardando resposta (acima da linha).
+  const pendentes = useMemo(
+    () => consultas.filter((c) => c.status !== 'Confirmada'),
+    [consultas]
+  );
+
+  // Consultas já confirmadas (abaixo da linha).
+  const confirmadas = useMemo(
+    () => consultas.filter((c) => c.status === 'Confirmada'),
+    [consultas]
+  );
+
   return {
     consultas,
+    pendentes,
+    confirmadas,
     loading,
     error,
     carregarConsultas,
