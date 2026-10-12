@@ -20,7 +20,6 @@ function ProntuariosStack() {
       <Stack.Screen
         name="ProntuarioExpandido"
         component={ProntuarioExpandidoView}
-        options={{ tabBarStyle: { display: 'none' } }}
       />
     </Stack.Navigator>
   );
@@ -42,7 +41,18 @@ export default function ClienteNavigator() {
       screenOptions={{ headerShown: false }}
     >
       <Tab.Screen name="Consultas" component={ConsultasView} />
-      <Tab.Screen name="Prontuários" component={ProntuariosStack} />
+      <Tab.Screen
+        name="Prontuários"
+        component={ProntuariosStack}
+        options={({ route }) => ({
+          tabBarStyle: {
+            display:
+              getFocusedRouteNameFromRoute(route) === 'ProntuarioExpandido'
+                ? 'none'
+                : 'flex',
+          },
+        })}
+      />
       <Tab.Screen
         name="Perfil"
         component={PerfilStack}
