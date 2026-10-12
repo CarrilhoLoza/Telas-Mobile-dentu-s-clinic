@@ -1,29 +1,25 @@
-import api from '../../../services/api';
+import { prontuarioResponseMock } from '../mocks/prontuariosMock';
 import { Prontuario } from '../models/Prontuario';
 import { Paciente } from '../models/Paciente';
 
+const delay = (ms = 500) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
- * Endpoints de prontuário do cliente:
+ * Serviço temporariamente mockado.
  *
- * GET /api/prontuarios/cliente
- * Response:
- * {
- *   "paciente": { "id", "nome", "email", "telefone" },
- *   "prontuarios": [
- *     {
- *       "id", "data", "status", "procedimento",
- *       "dentista", "descricao", "documentoTitulo"
- *     }
- *   ]
- * }
+ * Quando o back-end estiver disponível, substitua o corpo de `listar`
+ * pela chamada real:
+ *
+ * const { data } = await api.get('/prontuarios/cliente');
  */
 export const ProntuarioService = {
   async listar() {
-    const { data } = await api.get('/prontuarios/cliente');
+    await delay();
 
     return {
-      paciente: Paciente.fromApi(data.paciente ?? {}),
-      prontuarios: (data.prontuarios ?? []).map(Prontuario.fromApi),
+      paciente: Paciente.fromApi(prontuarioResponseMock.paciente),
+      prontuarios: prontuarioResponseMock.prontuarios.map(Prontuario.fromApi),
     };
   },
 };
