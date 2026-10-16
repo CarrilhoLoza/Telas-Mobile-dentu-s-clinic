@@ -52,6 +52,7 @@ export default function ConsultasView() {
     confirmadas,
     loading,
     error,
+    historico,
     carregarConsultas,
     confirmarConsulta,
     recusarConsulta,
@@ -122,6 +123,17 @@ export default function ConsultasView() {
         {pendentes.length === 0 ? (
           <Text style={styles.empty}>Sem Mais Consultas Agendadas</Text>
         ) : null}
+
+        {historico.length > 0 ? (
+          <>
+            <Text style={styles.secaoTitulo}>Consultas anteriores</Text>
+            {historico.map((item) => (
+              <View key={item.id} style={[styles.card, styles.cardConfirmada]}>
+                <InfoConsulta item={item} />
+              </View>
+            ))}
+          </>
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -151,6 +163,13 @@ const styles = StyleSheet.create({
     color: colors.textDark,
     marginTop: 4,
     marginBottom: 20,
+  },
+  secaoTitulo: {
+    fontSize: 14,
+    fontFamily: 'Merriweather_700Bold',
+    color: colors.textDark,
+    marginTop: 24,
+    marginBottom: 12,
   },
   error: { color: colors.danger, marginBottom: 12 },
   card: {

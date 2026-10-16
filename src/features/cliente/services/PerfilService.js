@@ -1,61 +1,36 @@
-import api from '../../../services/api';
+import api, { conteudo } from '../../../services/api';
 import { Paciente } from '../models/Paciente';
 
 /**
- * Integração de perfil do cliente.
+ * Perfil do paciente.
  *
- * ATENÇÃO PARA O BACK-END:
- * A tela de Perfil utiliza este serviço para carregar e persistir e-mail e telefone.
- * Sem os endpoints abaixo acessíveis, o aplicativo pode abrir a edição, mas o check
- * não consegue concluir o salvamento porque a requisição HTTP falha ou expira.
+ * GET  /api/paciente-app/perfil
+ * PUT  /api/paciente-app/perfil          Body: { nome, email, telefone }
+ * POST /api/paciente-app/alterar-senha   Body: { senhaAtual, novaSenha }
  *
- * Autenticação esperada:
- * - Todas as rotas devem aceitar `Authorization: Bearer <JWT>`.
- * - O interceptor em src/services/api.js injeta o token disponível em global.authToken.
+ * O paciente sempre age sobre o próprio cadastro: o servidor tira o id do
+ * token, nunca do corpo da requisição.
  *
- * Contrato comum do perfil:
- * { id, nome, email, telefone }
- * - `id`: identificador do paciente autenticado.
- * - `nome`: nome completo do paciente.
- * - `email`: e-mail atualizado do paciente.
- * - `telefone`: telefone atualizado do paciente.
- *
- * GET /api/clientes/perfil
- * - Retorno esperado: 200 com { id, nome, email, telefone }.
- * - O front-end converte a resposta usando Paciente.fromApi(data).
- *
- * PUT /api/clientes/perfil
- * - Body esperado: { nome, email, telefone }.
- * - Retorno esperado: 200 com o perfil completo e atualizado
- *   { id, nome, email, telefone }.
- * - O retorno atualizado é necessário para que o front-end confirme o salvamento,
- *   atualize o estado local e volte do ícone de check para o ícone de edição.
- *
- * POST /api/clientes/perfil/redefinir-senha
- * - Body esperado: { senhaAtual, novaSenha, confirmarNovaSenha }.
- * - Retorno esperado: 200 ou 204 em caso de sucesso.
+ * O e-mail é a credencial de acesso — alterá-lo aqui muda o e-mail usado
+ * para entrar no aplicativo.
  */
 export const PerfilService = {
   async buscar() {
-    const { data } = await api.get('/clientes/perfil');
-    return Paciente.fromApi(data);
+    const response = await api.get('/paciente-app/perfil');
+    return Paciente.fromApi(conteudo(response));
   },
 
   async atualizar(perfil) {
-    const { data } = await api.put('/clientes/perfil', {
+    const response = await api.put('/paciente-app/perfil', {
       nome: perfil.nome,
       email: perfil.email,
       telefone: perfil.telefone,
     });
 
-    return Paciente.fromApi(data);
+    return Paciente.fromApi(conteudo(response));
   },
 
-  async redefinirSenha({ senhaAtual, novaSenha, confirmarNovaSenha }) {
-    await api.post('/clientes/perfil/redefinir-senha', {
-      senhaAtual,
-      novaSenha,
-      confirmarNovaSenha,
-    });
+  async alterarSenha({ senhaAtual, novaSenha }) {
+    await api.post('/paciente-app/alterar-senha', { senhaAtual, novaSenha });
   },
 };

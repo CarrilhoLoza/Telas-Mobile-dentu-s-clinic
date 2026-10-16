@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "821083376379",
+    "project_id": "dentus-clinic",
+    "storage_bucket": "dentus-clinic.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:821083376379:android:961c7ebf6a88bf7b583e5e",
+        "android_client_info": {
+          "package_name": "com.dentusclinic.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrVgtx9oGUD6zqFIbayn_w_jnAagNbqS4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

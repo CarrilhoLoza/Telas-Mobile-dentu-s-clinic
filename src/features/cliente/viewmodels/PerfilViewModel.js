@@ -1,5 +1,8 @@
 import { useState, useCallback } from 'react';
 import { PerfilService } from '../services/PerfilService';
+import { AuthService } from '../services/AuthService';
+import { mensagemDeErro } from '../../../services/api';
+import { sessao } from '../../../services/sessao';
 
 export function usePerfilViewModel() {
   const [perfil, setPerfil] = useState({
@@ -20,7 +23,7 @@ export function usePerfilViewModel() {
       const dados = await PerfilService.buscar();
       setPerfil(dados);
     } catch (e) {
-      setError('Não foi possível carregar o perfil.');
+      setError(mensagemDeErro(e, 'Não foi possível carregar o perfil.'));
     } finally {
       setCarregandoPerfil(false);
     }
@@ -49,7 +52,8 @@ export function usePerfilViewModel() {
       setSucesso(true);
       return true;
     } catch (e) {
-      setError('Não foi possível salvar o perfil.');
+      // O e-mail é único no sistema; a mensagem do servidor explica melhor.
+      setError(mensagemDeErro(e, 'Não foi possível salvar o perfil.'));
       return false;
     } finally {
       setSalvandoPerfil(false);
@@ -61,27 +65,35 @@ export function usePerfilViewModel() {
       setError(null);
       setSucesso(false);
 
-      try {
-        await PerfilService.redefinirSenha({
-          senhaAtual,
-          novaSenha,
-          confirmarNovaSenha,
-        });
+      if (novaSenha.trim().length < 6) {
+        setError('A nova senha deve ter no mínimo 6 caracteres.');
+        return;
+      }
 
+      // A confirmação é conferida aqui: o servidor recebe só a senha nova.
+      if (novaSenha !== confirmarNovaSenha) {
+        setError('As senhas não conferem.');
+        return;
+      }
+
+      try {
+        await PerfilService.alterarSenha({ senhaAtual, novaSenha });
         setSucesso(true);
       } catch (e) {
-        setError('Não foi possível redefinir a senha.');
+        setError(mensagemDeErro(e, 'Não foi possível redefinir a senha.'));
       }
     },
     []
   );
 
+  // Sair precisa apagar a sessão guardada, senão o aplicativo volta a entrar
+  // sozinho na próxima abertura. Não existe logout no servidor: o token é sem
+  // estado e simplesmente expira.
   const sair = useCallback(async () => {
     try {
-      await PerfilService.logout();
+      await sessao.limpar();
     } finally {
-      global.authToken = null;
-      global.paciente = null;
+      AuthService.logout();
     }
   }, []);
 

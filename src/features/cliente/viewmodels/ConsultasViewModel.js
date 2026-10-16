@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { LayoutAnimation, Platform, UIManager } from 'react-native';
 import { ConsultaService } from '../services/ConsultaService';
+import { mensagemDeErro } from '../../../services/api';
 
 if (
   Platform.OS === 'android' &&
@@ -15,6 +16,7 @@ const animarLista = () =>
 
 export function useConsultasViewModel() {
   const [consultas, setConsultas] = useState([]);
+  const [historico, setHistorico] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -23,10 +25,16 @@ export function useConsultasViewModel() {
     setError(null);
 
     try {
-      const dados = await ConsultaService.listar();
-      setConsultas(dados);
+      // As duas listas vêm de endpoints diferentes: a de cima é acionável
+      // (confirmar/recusar), a outra é só leitura.
+      const [futuras, anteriores] = await Promise.all([
+        ConsultaService.listar(),
+        ConsultaService.listarHistorico(),
+      ]);
+      setConsultas(futuras);
+      setHistorico(anteriores);
     } catch (e) {
-      setError('Não foi possível carregar as consultas.');
+      setError(mensagemDeErro(e, 'Não foi possível carregar as consultas.'));
     } finally {
       setLoading(false);
     }
@@ -47,7 +55,9 @@ export function useConsultasViewModel() {
         )
       );
     } catch (e) {
-      setError('Não foi possível confirmar a consulta.');
+      // A API recusa a confirmação a menos de 1h da consulta: a mensagem dela
+      // explica o motivo melhor que um texto genérico.
+      setError(mensagemDeErro(e, 'Não foi possível confirmar a consulta.'));
     }
   }, []);
 
@@ -59,7 +69,7 @@ export function useConsultasViewModel() {
       animarLista();
       setConsultas((atual) => atual.filter((consulta) => consulta.id !== id));
     } catch (e) {
-      setError('Não foi possível recusar a consulta.');
+      setError(mensagemDeErro(e, 'Não foi possível recusar a consulta.'));
     }
   }, []);
 
@@ -77,6 +87,7 @@ export function useConsultasViewModel() {
 
   return {
     consultas,
+    historico,
     pendentes,
     confirmadas,
     loading,
