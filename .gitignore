@@ -20,6 +20,10 @@ android/app/*.iml
 android/local.properties
 *.keystore
 !debug.keystore
+# Chave de assinatura do APK de produção e suas senhas: quem tem isso
+# consegue publicar um app se passando pelo seu.
+*.jks
+android/key.properties
 
 # iOS (se aplicável no futuro)
 ios/Pods/
@@ -34,6 +38,9 @@ ios/build/
 .env.test.local
 .env.production.local
 *.pem
+# Chave de conta de serviço do Firebase. Ela é do backend, não deste projeto,
+# mas é fácil alguém salvar aqui por engano — e ela dá acesso de servidor.
+*-firebase-adminsdk-*.json
 
 # Logs
 npm-debug.log*
