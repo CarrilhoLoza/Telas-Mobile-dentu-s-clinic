@@ -15,6 +15,9 @@ import { consultasMock } from '../mocks/consultasMock';
  *
  * POST /api/consultas/:id/recusar
  * Response: { id, status: "Recusada" }
+ *
+ * PUT /consultas/:id/cancelar
+ * Response: { id, status: "Cancelada" }
  */
 
 export const ConsultaService = {
@@ -48,6 +51,18 @@ export const ConsultaService = {
     }
 
     const response = await api.put(`/consultas/${id}/recusar`);
+    return response.data.data;
+  },
+
+  async cancelar(id) {
+    if (environment.useMock) {
+      return {
+        id,
+        status: 'Cancelada',
+      };
+    }
+
+    const response = await api.put(`/consultas/${id}/cancelar`);
     return response.data.data;
   },
 };

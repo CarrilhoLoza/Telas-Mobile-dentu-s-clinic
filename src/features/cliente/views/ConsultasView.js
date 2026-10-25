@@ -12,6 +12,7 @@ import { FontAwesome5, Feather } from '@expo/vector-icons';
 import { useConsultasViewModel } from '../viewmodels/ConsultasViewModel';
 import { colors } from '../../../theme/colors';
 import ConfirmModal from '../../../components/ConfirmModal';
+import { podeCancelarConsulta } from '../utils/prazoCancelamento';
 
 function InfoConsulta({ item }) {
   return (
@@ -20,7 +21,7 @@ function InfoConsulta({ item }) {
 
       <View style={styles.row}>
         <View style={styles.info}>
-          <FontAwesome5 name="user-md" size={24} color={colors.textDark} />
+          <FontAwesome5 name=\"user-md\" size={24} color={colors.textDark} />
           <View style={styles.infoText}>
             <Text style={styles.label}>Dentista</Text>
             <Text style={styles.value}>{item.dentista}</Text>
@@ -28,7 +29,7 @@ function InfoConsulta({ item }) {
         </View>
 
         <View style={styles.info}>
-          <Feather name="clock" size={24} color={colors.textDark} />
+          <Feather name=\"clock\" size={24} color={colors.textDark} />
           <View style={styles.infoText}>
             <Text style={styles.label}>Horário</Text>
             <Text style={styles.value}>{item.horario}</Text>
@@ -37,7 +38,7 @@ function InfoConsulta({ item }) {
       </View>
 
       <View style={[styles.info, styles.dateRow]}>
-        <FontAwesome5 name="calendar-alt" size={40} color={colors.textDark} />
+        <FontAwesome5 name=\"calendar-alt\" size={40} color={colors.textDark} />
         <View style={styles.infoText}>
           <Text style={styles.dateLabel}>Data</Text>
           <Text style={styles.date}>{item.data}</Text>
@@ -56,13 +57,14 @@ export default function ConsultasView() {
     carregarConsultas,
     confirmarConsulta,
     recusarConsulta,
+    cancelarConsulta,
   } = useConsultasViewModel();
 
   useEffect(() => {
     carregarConsultas();
   }, [carregarConsultas]);
 
-  // { tipo: 'confirmar' | 'recusar', item } ou null
+  // { tipo: 'confirmar' | 'recusar' | 'cancelar', item } ou null
   const [acaoPendente, setAcaoPendente] = useState(null);
   const [processando, setProcessando] = useState(false);
 
@@ -76,8 +78,10 @@ export default function ConsultasView() {
     try {
       if (acaoPendente.tipo === 'confirmar') {
         await confirmarConsulta(acaoPendente.item.id);
-      } else {
+      } else if (acaoPendente.tipo === 'recusar') {
         await recusarConsulta(acaoPendente.item.id);
+      } else if (acaoPendente.tipo === 'cancelar') {
+        await cancelarConsulta(acaoPendente.item.id);
       }
     } finally {
       setProcessando(false);
@@ -85,12 +89,44 @@ export default function ConsultasView() {
     }
   };
 
-  const isRecusar = acaoPendente?.tipo === 'recusar';
+  const isDestrutivo =
+    acaoPendente?.tipo === 'recusar' || acaoPendente?.tipo === 'cancelar';
+
+  const getTituloModal = () => {
+    if (acaoPendente?.tipo === 'confirmar') return 'Confirmar consulta?';
+    if (acaoPendente?.tipo === 'recusar') return 'Recusar consulta?';
+    if (acaoPendente?.tipo === 'cancelar') return 'Cancelar consulta?';
+    return '';
+  };
+
+  const getLabelConfirmacao = () => {
+    if (acaoPendente?.tipo === 'confirmar') return 'Sim, confirmar';
+    if (acaoPendente?.tipo === 'recusar') return 'Sim, recusar';
+    if (acaoPendente?.tipo === 'cancelar') return 'Sim, cancelar';
+    return 'Confirmar';
+  };
+
+  const getMensagemModal = () => {
+    if (!acaoPendente) return '';
+    const { item, tipo } = acaoPendente;
+    const baseInfo = `${item.procedimento}\nDentista: ${item.dentista}\n${item.data} às ${item.horario}\n\n`;
+
+    if (tipo === 'confirmar') {
+      return baseInfo + 'Você confirma sua presença nesse horário.';
+    }
+    if (tipo === 'recusar') {
+      return baseInfo + 'Essa ação remove a consulta da sua lista.';
+    }
+    return (
+      baseInfo +
+      'O cancelamento libera este horário na clínica. Só é permitido cancelar com pelo menos 24 horas de antecedência.'
+    );
+  };
 
   if (loading && pendentes.length === 0 && confirmadas.length === 0) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.textDark} />
+        <ActivityIndicator size=\"large\" color={colors.textDark} />
       </View>
     );
   }
@@ -139,33 +175,47 @@ export default function ConsultasView() {
 
         <View style={styles.divider} />
 
-        {confirmadas.map((item) => (
-          <View key={item.id} style={[styles.card, styles.cardConfirmada]}>
-            <InfoConsulta item={item} />
-          </View>
-        ))}
+        {confirmadas.map((item) => {
+          const podeCancelar = podeCancelarConsulta(item, 24);
 
-        {pendentes.length === 0 ? (
+          return (
+            <View key={item.id} style={[styles.card, styles.cardConfirmada]}>
+              <InfoConsulta item={item} />
+
+              {podeCancelar ? (
+                <View style={styles.cancelarActionContainer}>
+                  <TouchableOpacity
+                    style={styles.cancelarConsultaButton}
+                    onPress={() => setAcaoPendente({ tipo: 'cancelar', item })}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.cancelarConsultaText}>
+                      Cancelar consulta
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <Text style={styles.avisoPrazo}>
+                  Cancelamentos permitidos apenas com 24h de antecedência.
+                </Text>
+              )}
+            </View>
+          );
+        })}
+
+        {pendentes.length === 0 && confirmadas.length === 0 ? (
           <Text style={styles.empty}>Sem Mais Consultas Agendadas</Text>
         ) : null}
       </ScrollView>
 
       <ConfirmModal
         visible={!!acaoPendente}
-        destructive={isRecusar}
+        destructive={isDestrutivo}
         loading={processando}
-        title={isRecusar ? 'Recusar consulta?' : 'Confirmar consulta?'}
-        message={
-          acaoPendente
-            ? `${acaoPendente.item.procedimento}\nDentista: ${acaoPendente.item.dentista}\n${acaoPendente.item.data} às ${acaoPendente.item.horario}\n\n${
-                isRecusar
-                  ? 'Essa ação remove a consulta da sua lista.'
-                  : 'Você confirma sua presença nesse horário.'
-              }`
-            : ''
-        }
-        confirmLabel={isRecusar ? 'Sim, recusar' : 'Sim, confirmar'}
-        cancelLabel="Voltar"
+        title={getTituloModal()}
+        message={getMensagemModal()}
+        confirmLabel={getLabelConfirmacao()}
+        cancelLabel=\"Voltar\"
         onConfirm={executarAcao}
         onCancel={fecharModal}
       />
@@ -269,6 +319,31 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 15,
     fontFamily: 'Merriweather_700Bold',
+  },
+  cancelarActionContainer: {
+    marginTop: 18,
+    alignItems: 'flex-end',
+  },
+  cancelarConsultaButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.danger,
+    backgroundColor: colors.white,
+  },
+  cancelarConsultaText: {
+    color: colors.danger,
+    fontSize: 13,
+    fontFamily: 'Merriweather_700Bold',
+  },
+  avisoPrazo: {
+    marginTop: 14,
+    fontSize: 11,
+    fontFamily: 'Merriweather_400Regular',
+    color: colors.textLight,
+    fontStyle: 'italic',
+    textAlign: 'right',
   },
   divider: {
     height: 1,

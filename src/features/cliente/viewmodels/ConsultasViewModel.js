@@ -63,6 +63,18 @@ export function useConsultasViewModel() {
     }
   }, []);
 
+  // CANCELAR (consulta já confirmada): cancelamento até 24h antes
+  const cancelarConsulta = useCallback(async (id) => {
+    try {
+      await ConsultaService.cancelar(id);
+
+      animarLista();
+      setConsultas((atual) => atual.filter((consulta) => consulta.id !== id));
+    } catch (e) {
+      setError('Não foi possível cancelar a consulta.');
+    }
+  }, []);
+
   // Consultas aguardando resposta (acima da linha).
   const pendentes = useMemo(
     () => consultas.filter((c) => c.status !== 'Confirmada'),
@@ -84,5 +96,6 @@ export function useConsultasViewModel() {
     carregarConsultas,
     confirmarConsulta,
     recusarConsulta,
+    cancelarConsulta,
   };
 }
