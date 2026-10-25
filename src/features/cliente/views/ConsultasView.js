@@ -21,7 +21,7 @@ function InfoConsulta({ item }) {
 
       <View style={styles.row}>
         <View style={styles.info}>
-          <FontAwesome5 name=\"user-md\" size={24} color={colors.textDark} />
+          <FontAwesome5 name="user-md" size={24} color={colors.textDark} />
           <View style={styles.infoText}>
             <Text style={styles.label}>Dentista</Text>
             <Text style={styles.value}>{item.dentista}</Text>
@@ -29,7 +29,7 @@ function InfoConsulta({ item }) {
         </View>
 
         <View style={styles.info}>
-          <Feather name=\"clock\" size={24} color={colors.textDark} />
+          <Feather name="clock" size={24} color={colors.textDark} />
           <View style={styles.infoText}>
             <Text style={styles.label}>Horário</Text>
             <Text style={styles.value}>{item.horario}</Text>
@@ -38,7 +38,7 @@ function InfoConsulta({ item }) {
       </View>
 
       <View style={[styles.info, styles.dateRow]}>
-        <FontAwesome5 name=\"calendar-alt\" size={40} color={colors.textDark} />
+        <FontAwesome5 name="calendar-alt" size={40} color={colors.textDark} />
         <View style={styles.infoText}>
           <Text style={styles.dateLabel}>Data</Text>
           <Text style={styles.date}>{item.data}</Text>
@@ -126,7 +126,7 @@ export default function ConsultasView() {
   if (loading && pendentes.length === 0 && confirmadas.length === 0) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size=\"large\" color={colors.textDark} />
+        <ActivityIndicator size="large" color={colors.textDark} />
       </View>
     );
   }
@@ -215,7 +215,7 @@ export default function ConsultasView() {
         title={getTituloModal()}
         message={getMensagemModal()}
         confirmLabel={getLabelConfirmacao()}
-        cancelLabel=\"Voltar\"
+        cancelLabel="Voltar"
         onConfirm={executarAcao}
         onCancel={fecharModal}
       />
