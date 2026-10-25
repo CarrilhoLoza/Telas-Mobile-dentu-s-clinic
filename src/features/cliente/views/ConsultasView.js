@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 import { FontAwesome5, Feather } from '@expo/vector-icons';
 import { useConsultasViewModel } from '../viewmodels/ConsultasViewModel';
 import { colors } from '../../../theme/colors';
+import ConfirmModal from '../../../components/ConfirmModal';
 
 function InfoConsulta({ item }) {
   return (
@@ -61,6 +62,31 @@ export default function ConsultasView() {
     carregarConsultas();
   }, [carregarConsultas]);
 
+  // { tipo: 'confirmar' | 'recusar', item } ou null
+  const [acaoPendente, setAcaoPendente] = useState(null);
+  const [processando, setProcessando] = useState(false);
+
+  const fecharModal = () => {
+    if (!processando) setAcaoPendente(null);
+  };
+
+  const executarAcao = async () => {
+    if (!acaoPendente || processando) return;
+    setProcessando(true);
+    try {
+      if (acaoPendente.tipo === 'confirmar') {
+        await confirmarConsulta(acaoPendente.item.id);
+      } else {
+        await recusarConsulta(acaoPendente.item.id);
+      }
+    } finally {
+      setProcessando(false);
+      setAcaoPendente(null);
+    }
+  };
+
+  const isRecusar = acaoPendente?.tipo === 'recusar';
+
   if (loading && pendentes.length === 0 && confirmadas.length === 0) {
     return (
       <View style={styles.center}>
@@ -94,7 +120,7 @@ export default function ConsultasView() {
             <View style={styles.actions}>
               <TouchableOpacity
                 style={[styles.button, styles.refuseButton]}
-                onPress={() => recusarConsulta(item.id)}
+                onPress={() => setAcaoPendente({ tipo: 'recusar', item })}
                 activeOpacity={0.8}
               >
                 <Text style={styles.refuseText}>Recusar</Text>
@@ -102,7 +128,7 @@ export default function ConsultasView() {
 
               <TouchableOpacity
                 style={[styles.button, styles.confirmButton]}
-                onPress={() => confirmarConsulta(item.id)}
+                onPress={() => setAcaoPendente({ tipo: 'confirmar', item })}
                 activeOpacity={0.8}
               >
                 <Text style={styles.confirmText}>Confirmar</Text>
@@ -123,6 +149,26 @@ export default function ConsultasView() {
           <Text style={styles.empty}>Sem Mais Consultas Agendadas</Text>
         ) : null}
       </ScrollView>
+
+      <ConfirmModal
+        visible={!!acaoPendente}
+        destructive={isRecusar}
+        loading={processando}
+        title={isRecusar ? 'Recusar consulta?' : 'Confirmar consulta?'}
+        message={
+          acaoPendente
+            ? `${acaoPendente.item.procedimento}\nDentista: ${acaoPendente.item.dentista}\n${acaoPendente.item.data} às ${acaoPendente.item.horario}\n\n${
+                isRecusar
+                  ? 'Essa ação remove a consulta da sua lista.'
+                  : 'Você confirma sua presença nesse horário.'
+              }`
+            : ''
+        }
+        confirmLabel={isRecusar ? 'Sim, recusar' : 'Sim, confirmar'}
+        cancelLabel="Voltar"
+        onConfirm={executarAcao}
+        onCancel={fecharModal}
+      />
     </View>
   );
 }
