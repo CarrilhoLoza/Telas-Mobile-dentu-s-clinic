@@ -1,5 +1,14 @@
 // src/features/cliente/utils/prazoCancelamento.js
 
+// Antecedência mínima (em horas) para cancelar uma consulta confirmada.
+// Definido pelos stakeholders: 1 hora.
+export const PRAZO_CANCELAMENTO_HORAS = 1;
+
+export const PRAZO_CANCELAMENTO_TEXTO =
+  PRAZO_CANCELAMENTO_HORAS === 1
+    ? '1 hora'
+    : `${PRAZO_CANCELAMENTO_HORAS} horas`;
+
 const MESES = {
   janeiro: 0,
   fevereiro: 1,
@@ -54,10 +63,13 @@ export function parseDataConsulta(dataStr, horarioStr) {
 }
 
 /**
- * Retorna true se a consulta estiver a pelo menos 24 horas a partir de agora.
+ * Retorna true se a consulta estiver a pelo menos PRAZO_CANCELAMENTO_HORAS a partir de agora.
  * Se a data não puder ser parseada, adota política permissiva (retorna true).
  */
-export function podeCancelarConsulta(item, antecedenciaMinimaHoras = 24) {
+export function podeCancelarConsulta(
+  item,
+  antecedenciaMinimaHoras = PRAZO_CANCELAMENTO_HORAS
+) {
   if (!item) return false;
   const dataConsulta = parseDataConsulta(item.data, item.horario);
   if (!dataConsulta) return true;

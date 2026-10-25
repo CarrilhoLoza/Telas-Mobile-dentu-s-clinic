@@ -12,7 +12,10 @@ import { FontAwesome5, Feather } from '@expo/vector-icons';
 import { useConsultasViewModel } from '../viewmodels/ConsultasViewModel';
 import { colors } from '../../../theme/colors';
 import ConfirmModal from '../../../components/ConfirmModal';
-import { podeCancelarConsulta } from '../utils/prazoCancelamento';
+import {
+  podeCancelarConsulta,
+  PRAZO_CANCELAMENTO_TEXTO,
+} from '../utils/prazoCancelamento';
 
 function InfoConsulta({ item }) {
   return (
@@ -119,7 +122,7 @@ export default function ConsultasView() {
     }
     return (
       baseInfo +
-      'O cancelamento libera este horário na clínica. Só é permitido cancelar com pelo menos 24 horas de antecedência.'
+      `O cancelamento libera este horário na clínica. Só é permitido cancelar com pelo menos ${PRAZO_CANCELAMENTO_TEXTO} de antecedência.`
     );
   };
 
@@ -176,7 +179,7 @@ export default function ConsultasView() {
         <View style={styles.divider} />
 
         {confirmadas.map((item) => {
-          const podeCancelar = podeCancelarConsulta(item, 24);
+          const podeCancelar = podeCancelarConsulta(item);
 
           return (
             <View key={item.id} style={[styles.card, styles.cardConfirmada]}>
@@ -196,7 +199,7 @@ export default function ConsultasView() {
                 </View>
               ) : (
                 <Text style={styles.avisoPrazo}>
-                  Cancelamentos permitidos apenas com 24h de antecedência.
+                  {`Cancelamentos permitidos apenas com ${PRAZO_CANCELAMENTO_TEXTO} de antecedência.`}
                 </Text>
               )}
             </View>
