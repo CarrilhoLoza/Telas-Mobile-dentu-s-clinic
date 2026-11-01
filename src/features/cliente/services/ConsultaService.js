@@ -16,7 +16,13 @@ import { Consulta } from '../models/Consulta';
  *
  * A API recusa as duas ações a menos de 1 hora do horário marcado, e em
  * consulta já realizada ou cancelada.
+ * POST /api/consultas/:id/recusar
+ * Response: { id, status: "Recusada" }
+ *
+ * PUT /consultas/:id/cancelar
+ * Response: { id, status: "Cancelada" }
  */
+
 export const ConsultaService = {
   async listar() {
     if (environment.useMock) {
@@ -57,5 +63,17 @@ export const ConsultaService = {
     }
 
     await api.post(`/paciente-app/consultas/${id}/recusar`);
+  },
+
+  async cancelar(id) {
+    if (environment.useMock) {
+      return {
+        id,
+        status: 'Cancelada',
+      };
+    }
+
+    const response = await api.put(`/consultas/${id}/cancelar`);
+    return response.data.data;
   },
 };
