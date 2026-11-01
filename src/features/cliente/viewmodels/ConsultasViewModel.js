@@ -81,7 +81,7 @@ export function useConsultasViewModel() {
       animarLista();
       setConsultas((atual) => atual.filter((consulta) => consulta.id !== id));
     } catch (e) {
-      setError('Não foi possível cancelar a consulta.');
+      setError(mensagemDeErro(e, 'Não foi possível cancelar a consulta.'));
     }
   }, []);
 
@@ -110,3 +110,4 @@ export function useConsultasViewModel() {
     cancelarConsulta,
   };
 }
+

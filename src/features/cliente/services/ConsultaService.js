@@ -73,7 +73,7 @@ export const ConsultaService = {
       };
     }
 
-    const response = await api.put(`/consultas/${id}/cancelar`);
-    return response.data.data;
+    await this.recusar(id);
   },
 };
+
