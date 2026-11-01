@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   View,
   Text,
   TextInput,
@@ -129,15 +130,26 @@ export default function PerfilView({ navigation }) {
     }
   };
 
-  const sairDoApp = async () => {
+  const encerrarSessao = async () => {
     try {
       await sair();
-    } catch (e) {
-      // sem back-end ainda: segue para o login mesmo assim
+    } finally {
+      // Mesmo se apagar a sessão falhar, voltar para o login é o esperado:
+      // o token já foi descartado da memória.
+      navigation.dispatch(
+        CommonActions.reset({ index: 0, routes: [{ name: 'Login' }] })
+      );
     }
+  };
 
-    navigation.dispatch(
-      CommonActions.reset({ index: 0, routes: [{ name: 'Login' }] })
+  const sairDoApp = () => {
+    Alert.alert(
+      'Sair da conta',
+      'Você vai precisar entrar de novo com e-mail e senha.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Sair', style: 'destructive', onPress: encerrarSessao },
+      ]
     );
   };
 

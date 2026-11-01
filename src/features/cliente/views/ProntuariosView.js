@@ -63,7 +63,9 @@ export default function ProntuariosView({ navigation }) {
               {item.data}  •  {item.status}
             </Text>
             <Text style={styles.cardTitle}>{item.procedimento}</Text>
-            <Text style={styles.cardDentista}>Dentista: {item.dentista}</Text>
+            {item.dentista ? (
+              <Text style={styles.cardDentista}>Dentista: {item.dentista}</Text>
+            ) : null}
             <Text style={styles.cardDescription}>{item.descricao}</Text>
 
             <TouchableOpacity

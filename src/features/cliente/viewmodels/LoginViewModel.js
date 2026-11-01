@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
-// import { AuthService } from '../services/AuthService';
+import { AuthService } from '../services/AuthService';
+import { mensagemDeErro } from '../../../services/api';
+import { sessao } from '../../../services/sessao';
 
 export function useLoginViewModel() {
   const [email, setEmail] = useState('');
@@ -26,70 +28,50 @@ export function useLoginViewModel() {
         setLoading(true);
 
         try {
-          // MODO DE TESTE:
-          // Não chama o back-end neste momento.
-          // Qualquer e-mail e senha preenchidos liberam o acesso.
+          const resposta = await AuthService.login({ email: email.trim(), senha });
 
-          await new Promise((resolve) => setTimeout(resolve, 600));
+          // O mesmo login atende a clínica toda; só paciente usa este app.
+          if (resposta.tipoAcesso !== 'PACIENTE') {
+            setError('Este aplicativo é exclusivo para pacientes.');
+            return;
+          }
 
-          global.authToken = 'token-mock-dentus-clinic';
-
-          global.paciente = {
-            id: 1,
-            nome: 'João Victor Carrilho Loza',
+          const paciente = {
+            id: resposta.id,
+            nome: resposta.nome,
             email: email.trim(),
-            telefone: '(11) 99999-9999',
-            role: 'PACIENTE',
+            role: resposta.tipoAcesso,
           };
+
+          global.authToken = resposta.token;
+          global.paciente = paciente;
+
+          // Com senha temporária, a API recusa os demais endpoints até que o
+          // paciente defina a senha dele.
+          if (resposta.primeiroAcesso) {
+            navigation.replace('PrimeiroAcesso');
+            return;
+          }
+
+          // Só guarda a sessão se o paciente pediu. Sem isso, sair do
+          // aplicativo encerra a sessão, que é o esperado em celular dividido.
+          if (manterLogado) {
+            await sessao.salvar({
+              token: resposta.token,
+              paciente,
+              expiracao: resposta.expiracao,
+            });
+          }
 
           navigation.replace('Cliente');
         } catch (e) {
-          setError('Não foi possível iniciar a sessão de teste.');
+          setError(mensagemDeErro(e, 'Não foi possível entrar. Verifique seus dados.'));
         } finally {
           setLoading(false);
         }
       },
-      [email, senha]
+      [email, senha, manterLogado]
   );
-
-  // =================================================
-  //    BLOCO REAL COMENTADO PARA UTILIZAÇÃO DO MOCK ACIMA
-  // =================================================
-  //
-  //
-  // const entrar = useCallback(
-  //   async (navigation) => {
-  //     setError(null);
-  //
-  //     if (!email.trim() || !senha.trim()) {
-  //       setError('Informe e-mail e senha.');
-  //       return;
-  //     }
-  //
-  //     setLoading(true);
-  //
-  //     try {
-  //       const resposta = await AuthService.login({
-  //         email,
-  //         senha,
-  //         manterLogado,
-  //       });
-  //
-  //       global.authToken = resposta.token;
-  //       global.paciente = resposta.paciente;
-  //
-  //       navigation.replace('Cliente');
-  //     } catch (e) {
-  //       setError(
-  //         e.response?.data?.message ??
-  //           'Não foi possível entrar. Verifique seus dados.'
-  //       );
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   },
-  //   [email, senha, manterLogado]
-  // );
 
   return {
     email,

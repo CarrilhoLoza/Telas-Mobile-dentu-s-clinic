@@ -1,34 +1,27 @@
 import axios from 'axios';
+import { environment } from '../config/environment';
 
 /**
  * Configuração central da API.
  *
- * ATENÇÃO PARA O BACK-END E AMBIENTE DE DESENVOLVIMENTO:
- * - O aplicativo espera que todas as rotas tenham o prefixo `/api`.
- * - A BASE_URL abaixo aponta para um IP local; ela só funciona se o servidor
- *   estiver ativo na porta 3000 e o dispositivo móvel conseguir acessar esse IP
- *   pela mesma rede Wi-Fi.
- * - Sem uma API disponível nesse endereço, operações como GET /clientes/perfil
- *   e PUT /clientes/perfil falham ou expiram após 15 segundos.
- * - Para testar em emulador Android, normalmente use http://10.0.2.2:3000/api.
- * - Para dispositivo físico, use o IP LAN atual do computador que executa a API.
- * - Em produção, substitua por uma URL HTTPS pública, por exemplo
- *   https://api.dentusclinic.com/api.
+ * O endereço vem de src/config/environment.js — é o único lugar a alterar
+ * para apontar para outra máquina ou para produção.
  *
- * O front-end envia o JWT em `Authorization: Bearer <token>` quando
- * global.authToken estiver preenchido. As rotas protegidas devem validar esse token.
+ * A API responde num envelope { sucesso, mensagem, dados }, então o conteúdo
+ * útil está sempre em `dados`. Use o helper `conteudo` abaixo em vez de ler
+ * `response.data` direto.
+ *
+ * O token JWT é enviado em `Authorization: Bearer <token>` quando
+ * global.authToken estiver preenchido.
  */
-const BASE_URL = 'http://192.168.3.5:3000/api';
-
 const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: environment.baseUrl,
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Interceptor para enviar o token JWT, quando existir.
 api.interceptors.request.use((config) => {
   const token = global.authToken;
 
@@ -39,7 +32,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Interceptor para tratar sessão expirada.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -50,5 +42,28 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+/** Desembrulha o envelope da API. */
+export function conteudo(response) {
+  return response.data?.dados ?? response.data;
+}
+
+/**
+ * Extrai a mensagem de erro da API. Ela chega em `mensagem` quando o próprio
+ * controller recusa a operação, e em `error` quando a recusa vem do banco e
+ * passa pelo middleware de erros.
+ */
+export function mensagemDeErro(erro, padrao = 'Não foi possível concluir a operação.') {
+  const corpo = erro.response?.data;
+
+  if (Array.isArray(corpo?.error) && corpo.error.length > 0) return corpo.error.join('\n');
+  if (corpo?.mensagem) return corpo.mensagem;
+  if (Array.isArray(corpo?.erros) && corpo.erros.length > 0) return corpo.erros.join('\n');
+  if (erro.code === 'ECONNABORTED' || !erro.response) {
+    return 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+  }
+
+  return padrao;
+}
 
 export default api;

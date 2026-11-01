@@ -13,10 +13,15 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.dentusclinic.app"
+      "package": "com.dentusclinic.app",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro"
-    }
+    },
+    "plugins": [
+      "expo-notifications",
+      "expo-secure-store"
+    ]
   }
 }

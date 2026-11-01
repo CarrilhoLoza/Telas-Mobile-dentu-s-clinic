@@ -32,7 +32,13 @@ export default function FormField({
         />
 
         {secure ? (
-          <Pressable hitSlop={12} onPress={() => setHidden((h) => !h)}>
+          <Pressable
+            style={styles.olho}
+            hitSlop={12}
+            onPress={() => setHidden((escondida) => !escondida)}
+            accessibilityRole="button"
+            accessibilityLabel={hidden ? 'Mostrar senha' : 'Ocultar senha'}
+          >
             <Feather
               name={hidden ? 'eye' : 'eye-off'}
               size={18}
@@ -64,6 +70,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingLeft: 14,
     paddingRight: 14,
+  },
+  // Área de toque própria: só o ícone de 18px é alvo pequeno demais, e no
+  // Android o toque acabava caindo no campo de texto ao lado.
+  olho: {
+    paddingVertical: 12,
+    paddingLeft: 12,
   },
   input: {
     flex: 1,

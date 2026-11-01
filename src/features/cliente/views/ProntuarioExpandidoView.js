@@ -16,6 +16,10 @@ const COLORS = {
   c3: '#BEB48B',
   c4: '#E7E7DB',
   c5: '#F9F9F9',
+  // Mesmo azul do odontograma do sistema web, para o dente tratado ter a
+  // mesma leitura nos dois lugares.
+  denteTratado: '#3498db',
+  denteTratadoBorda: '#2980b9',
 };
 
 const QUADRANTES = {
@@ -25,24 +29,20 @@ const QUADRANTES = {
   inferiorEsquerdo: ['31', '32', '33', '34', '35', '36', '37', '38'],
 };
 
-function Arcada({ dentes, denteTratado }) {
+function Arcada({ dentes, dentesTratados }) {
   return (
     <View style={styles.arcada}>
-      {dentes.map((dente) => (
-        <View
-          key={dente}
-          style={[styles.tooth, dente === denteTratado && styles.toothSelected]}
-        >
-          <Text
-            style={[
-              styles.toothText,
-              dente === denteTratado && styles.toothTextSelected,
-            ]}
-          >
-            {dente}
-          </Text>
-        </View>
-      ))}
+      {dentes.map((dente) => {
+        const tratado = dentesTratados.includes(dente);
+
+        return (
+          <View key={dente} style={[styles.tooth, tratado && styles.toothSelected]}>
+            <Text style={[styles.toothText, tratado && styles.toothTextSelected]}>
+              {dente}
+            </Text>
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -51,17 +51,16 @@ export default function ProntuarioExpandidoView({ route, navigation }) {
   const insets = useSafeAreaInsets();
   const prontuario = route.params?.prontuario ?? {};
 
-  const procedimento = prontuario.procedimento ?? 'Extração';
-  const data = prontuario.data ?? '20/09/2026';
-  const status = prontuario.status ?? 'Procedimento concluído';
-  const condicao = prontuario.condicao ?? 'Dente 48 parcialmente erupcionado com episódios recorrentes de inflamação.';
-  const planejamento = prontuario.planejamento ?? 'Extração de terceiro molar inferior direito.';
-  const realizado = prontuario.realizado ?? [
-    'Extração realizada após avaliação radiográfica.',
-    'Orientações pós-operatórias fornecidas.',
-  ];
-  const dentista = prontuario.dentista ?? 'Gustavo';
-  const denteTratado = prontuario.denteTratado ?? '48';
+  // Campo vazio fica vazio: inventar dado clínico de exemplo aqui faria o
+  // paciente ler um tratamento que não é o dele.
+  const procedimento = prontuario.procedimento ?? 'Tratamento';
+  const data = prontuario.data ?? '';
+  const status = prontuario.status ?? '';
+  const condicao = prontuario.condicao ?? '';
+  const planejamento = prontuario.planejamento ?? '';
+  const realizado = prontuario.realizado ?? [];
+  const dentista = prontuario.dentista ?? '';
+  const dentesTratados = prontuario.dentesTratados ?? [];
 
   const dentesSuperiores = [
     ...QUADRANTES.superiorDireito,
@@ -108,18 +107,20 @@ export default function ProntuarioExpandidoView({ route, navigation }) {
           <Text style={styles.cardTitle}>Odontograma</Text>
 
           <Text style={styles.arcadaLabel}>ARCADA SUPERIOR</Text>
-          <Arcada dentes={dentesSuperiores} denteTratado={denteTratado} />
+          <Arcada dentes={dentesSuperiores} dentesTratados={dentesTratados} />
 
           <View style={styles.divider} />
 
           <Text style={styles.arcadaLabel}>ARCADA INFERIOR</Text>
-          <Arcada dentes={dentesInferiores} denteTratado={denteTratado} />
+          <Arcada dentes={dentesInferiores} dentesTratados={dentesTratados} />
 
-          {denteTratado ? (
+          {dentesTratados.length > 0 ? (
             <View style={styles.legendRow}>
               <View style={styles.legendDot} />
               <Text style={styles.legendText}>
-                Tratado em consulta (dente {denteTratado})
+                {dentesTratados.length === 1
+                  ? `Tratado em consulta (dente ${dentesTratados[0]})`
+                  : `Tratados em consulta (dentes ${dentesTratados.join(', ')})`}
               </Text>
             </View>
           ) : null}
@@ -144,16 +145,20 @@ export default function ProntuarioExpandidoView({ route, navigation }) {
           ))}
         </View>
 
-        <View style={styles.dentistCard}>
-          <View style={styles.dentistAvatar}>
-            <Text style={styles.dentistInitial}>{dentista.charAt(0)}</Text>
-          </View>
+        {/* O plano de tratamento não guarda quem o registrou, então o cartão
+            só aparece quando o dentista é conhecido. */}
+        {dentista ? (
+          <View style={styles.dentistCard}>
+            <View style={styles.dentistAvatar}>
+              <Text style={styles.dentistInitial}>{dentista.charAt(0)}</Text>
+            </View>
 
-          <View>
-            <Text style={styles.dentistLabel}>Dentista responsável</Text>
-            <Text style={styles.dentistName}>{dentista}</Text>
+            <View>
+              <Text style={styles.dentistLabel}>Dentista responsável</Text>
+              <Text style={styles.dentistName}>{dentista}</Text>
+            </View>
           </View>
-        </View>
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -264,8 +269,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   toothSelected: {
-    backgroundColor: COLORS.c2,
-    borderColor: COLORS.c1,
+    backgroundColor: COLORS.denteTratado,
+    borderColor: COLORS.denteTratadoBorda,
   },
   toothText: {
     color: COLORS.c1,
@@ -290,7 +295,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: COLORS.c2,
+    backgroundColor: COLORS.denteTratado,
     marginRight: 8,
   },
   legendText: {
