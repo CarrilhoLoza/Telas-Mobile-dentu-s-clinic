@@ -10,6 +10,8 @@ import { Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
 
 import LoginView from './src/features/cliente/views/LoginView';
 import PrimeiroAcessoView from './src/features/cliente/views/PrimeiroAcessoView';
+import EsqueciSenhaView from './src/features/cliente/views/EsqueciSenhaView';
+import RedefinirSenhaEsquecidaView from './src/features/cliente/views/RedefinirSenhaEsquecidaView';
 import ClienteNavigator from './src/navigation/ClienteNavigator';
 import { sessao } from './src/services/sessao';
 import { colors } from './src/theme/colors';
@@ -78,6 +80,11 @@ export default function App() {
       <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={telaInicial}>
         <Stack.Screen name="Login" component={LoginView} />
         <Stack.Screen name="PrimeiroAcesso" component={PrimeiroAcessoView} />
+        <Stack.Screen name="EsqueciSenha" component={EsqueciSenhaView} />
+        <Stack.Screen
+          name="RedefinirSenhaEsquecida"
+          component={RedefinirSenhaEsquecidaView}
+        />
         <Stack.Screen name="Cliente" component={ClienteNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
