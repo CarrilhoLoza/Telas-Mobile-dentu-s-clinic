@@ -22,6 +22,11 @@
     "plugins": [
       "expo-notifications",
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "4d585471-5f65-4d7a-bcd4-e02e85f5bd20"
+      }
+    }
   }
 }
