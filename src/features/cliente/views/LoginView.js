@@ -79,6 +79,13 @@ export default function LoginView({ navigation }) {
           </View>
 
           <TouchableOpacity
+            onPress={() => navigation.navigate('EsqueciSenha')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.esqueceuSenha}>Esqueceu a senha?</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={styles.button}
             onPress={() => entrar(navigation)}
             disabled={loading}
@@ -166,6 +173,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter_400Regular',
     color: colors.textDark,
+  },
+  esqueceuSenha: {
+    color: colors.primary,
+    fontSize: 13.5,
+    fontFamily: 'Inter_600SemiBold',
+    textAlign: 'right',
+    marginBottom: 20,
   },
   button: {
     backgroundColor: colors.textDark,
